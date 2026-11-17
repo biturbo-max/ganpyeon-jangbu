@@ -78,4 +78,12 @@ assert.equal(R.computeVat(44546, 'SEPARATE'), 4454);        // 원 미만 절사
 assert.equal(R.computeVat(44546, 'NONE'), 0);
 assert.equal(R.computeVat(44546, 'SEPARATE', 4455), 4455);
 
+// 자체 항목(OWN): (39) 기타에 합산 + 이름별 내역, 경고 없음
+const cats2 = cats.map(c => c.name === '교재비' ? { ...c, formLine: 'OWN' } : c);
+const es2 = R.computeExpenseStatement(txs, cats2, adj, 2025);
+assert.equal(es2.lines.L39, 40000);
+assert.equal(es2.lines.L41, es.lines.L41 + 40000);
+assert.deepEqual(es2.ownItems, [{ category: '교재비', amount: 40000 }]);
+assert.equal(es2.warnings.length, 0);
+
 console.log('reports.test.js: 모든 검사 통과');

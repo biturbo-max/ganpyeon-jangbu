@@ -86,10 +86,12 @@ let es = ok(api('reports.expenseStatement', { year: 2025 }));
 assert.equal(es.warnings[0].category, '교재비');
 assert.equal(es.lines.L41, 400000);
 err(api('categories.update', { kind: 'EXPENSE', name: '교재비', formLine: 'L11' }), 'VALIDATION_ERROR'); // 수입 항목은 비용에 못 씀
-ok(api('categories.update', { kind: 'EXPENSE', name: '교재비', formLine: 'L39' }));
+err(api('categories.update', { kind: 'INCOME', name: '매출', formLine: 'OWN' }), 'VALIDATION_ERROR'); // 자체 항목은 비용만
+ok(api('categories.update', { kind: 'EXPENSE', name: '교재비', formLine: 'OWN' }));
 es = ok(api('reports.expenseStatement', { year: 2025 }));
 assert.equal(es.warnings.length, 0);
 assert.equal(es.lines.L41, 400100);
+assert.equal(JSON.stringify(es.ownItems), JSON.stringify([{ category: '교재비', amount: 100 }]));
 assert.equal(es.header.ownerName, '홍길동');
 
 // 거래구분 이름 변경 → 과거 거래도 함께 변경

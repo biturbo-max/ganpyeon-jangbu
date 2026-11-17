@@ -94,6 +94,7 @@ dialog::backdrop{background:rgba(17,24,39,.4)}
 .form td.amt{text-align:right;width:170px;font-variant-numeric:tabular-nums}
 .form td.amt input{width:100%;text-align:right;border:1px dashed var(--expense);border-radius:4px;padding:2px 4px;background:var(--expense-bg)}
 .form tr.tot td{font-weight:700}
+.form tr.own td{color:var(--muted);font-size:12px}
 .form .vert{writing-mode:vertical-rl;text-orientation:upright;text-align:center;letter-spacing:2px;width:34px}
 .form-doc .foot{margin-top:14px;font-size:13px}
 .form-doc .sign{display:grid;grid-template-columns:1fr auto auto;gap:8px 24px;justify-items:end;margin:14px 0}
@@ -571,7 +572,7 @@ const amt = n => `<td class="amt">${fmt(n)}</td>`;
 /* ───────── 총수입금액 및 필요경비명세서 ───────── */
 VIEWS.expense = async v => {
   const r = await call('reports.expenseStatement', { year: S.year });
-  const L = r.lines, a = r.adjustments;
+  const L = r.lines, a = r.adjustments, own = r.ownItems || [];
   const G = (n, label) => `<td>${label}</td>${amt(L['L' + n])}`;
   const E = (n, label) => `<td>${label}</td><td class="amt">${adjInput('L' + n, a['L' + n])}</td>`;
   const gen = [[25, '급 료'], [26, '제 세 공 과 금'], [27, '임 차 료'], [28, '지 급 이 자'], [29, '접 대 비'], [30, '기 부 금'], [31, '감 가 상 각 비'],
@@ -586,7 +587,7 @@ VIEWS.expense = async v => {
         <tr><th rowspan="3" colspan="2" class="vert">장부상 수입금액</th>${G(11, '(11) 매 출 액')}</tr>
         <tr>${G(12, '(12) 기 타')}</tr>
         <tr class="tot">${G(13, '(13) 수입금액 합계(11+12)')}</tr>
-        <tr><th rowspan="28" class="vert">필 요 경 비</th><th rowspan="4" class="vert">매출원가</th>${E(14, '(14) 기초재고액')}</tr>
+        <tr><th rowspan="${28 + own.length}" class="vert">필 요 경 비</th><th rowspan="4" class="vert">매출원가</th>${E(14, '(14) 기초재고액')}</tr>
         <tr>${G(15, '(15) 당기상품매입액 또는 제조비용(24)')}</tr>
         <tr>${E(16, '(16) 기말재고액')}</tr>
         <tr class="tot">${G(17, '(17) 매출원가(14+15-16)')}</tr>
@@ -597,8 +598,9 @@ VIEWS.expense = async v => {
         <tr>${G(22, '(22) 노 무 비')}</tr>
         <tr>${G(23, '(23) 경 비')}</tr>
         <tr class="tot">${G(24, '(24) 당기제조비용(21+22+23)')}</tr>
-        <tr><th rowspan="16" class="vert">일반관리비등</th>${G(gen[0][0], `(${gen[0][0]}) ${gen[0][1]}`)}</tr>
+        <tr><th rowspan="${16 + own.length}" class="vert">일반관리비등</th>${G(gen[0][0], `(${gen[0][0]}) ${gen[0][1]}`)}</tr>
         ${gen.slice(1).map(([n, l]) => `<tr>${G(n, `(${n}) ${l}`)}</tr>`).join('')}
+        ${own.map(o => `<tr class="own"><td>&nbsp;&nbsp;└ ${esc(o.category)} <small>((39) 기타에 포함)</small></td><td class="amt">${fmt(o.amount)}</td></tr>`).join('')}
         <tr class="tot">${G(40, '(40) 일반관리비등계(25~39의 합계)')}</tr>
         <tr class="tot"><td colspan="2">(41) 필요경비 합계(17+40)</td>${amt(L.L41)}</tr>
       </tbody></table>

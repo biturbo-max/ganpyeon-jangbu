@@ -16,7 +16,8 @@ var FORM_LINES = [
   ['L28', '(28) 지급이자'], ['L29', '(29) 접대비'], ['L30', '(30) 기부금'],
   ['L31', '(31) 감가상각비'], ['L32', '(32) 차량유지비'], ['L33', '(33) 지급수수료'],
   ['L34', '(34) 소모품비'], ['L35', '(35) 복리후생비'], ['L36', '(36) 운반비'],
-  ['L37', '(37) 광고선전비'], ['L38', '(38) 여비교통비'], ['L39', '(39) 기타(비용)']
+  ['L37', '(37) 광고선전비'], ['L38', '(38) 여비교통비'], ['L39', '(39) 기타(비용)'],
+  ['OWN', '자체 항목 — 이름 그대로 표시, (39) 기타에 합산']
 ];
 var INCOME_LINES = ['L11', 'L12'];
 
@@ -36,13 +37,16 @@ function computeExpenseStatement(txs, categories, adj, year) {
   var map = {};
   categories.forEach(function (c) { map[c.kind + '|' + c.name] = c.formLine || ''; });
 
-  var by = {}, unmapped = {};
+  var by = {}, unmapped = {}, own = {};
   FORM_LINES.forEach(function (l) { by[l[0]] = 0; });
 
   txs.forEach(function (t) {
     if (yearOf_(t.date) !== year || t.kind === 'ASSET') return;
     var line = map[t.kind + '|' + t.category];
     var ok = line && (t.kind === 'INCOME') === (INCOME_LINES.indexOf(line) >= 0);
+    if (ok && line === 'OWN') {   // 서식에 칸이 없는 자체 항목: (39) 기타에 합산하고 이름별 내역을 남긴다
+      by.L39 += num_(t.supplyAmount); own[t.category] = (own[t.category] || 0) + num_(t.supplyAmount); return;
+    }
     if (ok) { by[line] += num_(t.supplyAmount); return; }
     var key = t.kind + '|' + t.category;
     unmapped[key] = (unmapped[key] || 0) + num_(t.supplyAmount);
@@ -65,7 +69,8 @@ function computeExpenseStatement(txs, categories, adj, year) {
     var p = k.split('|');
     return { code: 'UNMAPPED_CATEGORY', kind: p[0], category: p[1], amount: unmapped[k] };
   });
-  return { year: year, lines: L, warnings: warnings };
+  var ownItems = Object.keys(own).map(function (k) { return { category: k, amount: own[k] }; });
+  return { year: year, lines: L, ownItems: ownItems, warnings: warnings };
 }
 
 /** 간편장부소득금액계산서. 장부상 금액은 반드시 부표 결과에서 가져온다. */
