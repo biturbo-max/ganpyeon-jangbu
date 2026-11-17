@@ -4,6 +4,11 @@
  * 모든 응답: { ok:true, data } | { ok:false, error:{ code, message, details? } }
  */
 
+/** 스프레드시트에 붙인(확장 프로그램 › Apps Script) 스크립트면 비워 둔다.
+ *  독립 실행형 프로젝트(script.google.com › 새 프로젝트)면 장부 스프레드시트 ID를 넣는다.
+ *  ID = 스프레드시트 주소의 /d/ 와 /edit 사이 문자열 */
+var SHEET_ID = '';
+
 var HEADERS = {
   transactions: ['id', 'date', 'kind', 'category', 'description', 'partner', 'supplyAmount',
     'vatAmount', 'totalAmount', 'evidence', 'memo', 'vatMode', 'createdAt', 'updatedAt', 'requestId'],
@@ -340,7 +345,7 @@ function statement_(p, fn) {
 // ───────────────────────── 시트 접근 ─────────────────────────
 
 function sheet_(name) {
-  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name);
+  var ss = book_(), sh = ss.getSheetByName(name);
   if (!sh) {
     sh = ss.insertSheet(name);
     sh.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]);
@@ -354,6 +359,11 @@ function sheet_(name) {
     sheet_.formatted[name] = true;
   }
   return sh;
+}
+
+function book_() {
+  if (!book_.ss) book_.ss = SHEET_ID ? SpreadsheetApp.openById(SHEET_ID) : SpreadsheetApp.getActive();
+  return book_.ss;
 }
 
 // ponytail: 매 요청마다 시트 전체를 읽는다. 수만 행까지는 충분히 빠름, 그 이상이면 연도별 시트 분할.

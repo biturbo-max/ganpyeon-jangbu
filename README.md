@@ -51,6 +51,10 @@ python3 tools/migrate.py 원본장부.xlsm 장부데이터.xlsx
 
 (clasp를 쓰면: `cd apps-script && clasp clone <스크립트ID>` 후 `clasp push`)
 
+> **구글 계정을 여러 개 로그인해 쓰는 경우** 확장 프로그램 › Apps Script가 "페이지를 찾을 수 없음"으로 열리지 않을 수 있습니다.
+> 그때는 `script.google.com/u/1/`(두 번째 계정이면 1)에서 **새 프로젝트**를 만들고 위 파일을 붙여넣은 뒤,
+> `Code.gs` 맨 위 `SHEET_ID`에 장부 스프레드시트 ID(주소의 `/d/`와 `/edit` 사이)를 넣으면 됩니다.
+
 ### 4. 웹앱 배포
 
 1. 오른쪽 위 **배포 › 새 배포 › 유형: 웹 앱**
