@@ -1,0 +1,7 @@
+# 개인 장부 데이터는 절대 커밋하지 않는다
+*.xlsm
+*.xlsx
+*.csv
+*원본변환*.md
+.clasp.json
+node_modules/
